@@ -7217,6 +7217,10 @@ class BaseModelSqlv2 {
                       }).then((r) => (lookedUpAttachment.signedPath = r)),
                     );
 
+                    if (!lookedUpAttachment.mimetype?.startsWith('image/')) {
+                      continue;
+                    }
+
                     lookedUpAttachment.thumbnails = {
                       tiny: {},
                       small: {},
@@ -7257,10 +7261,14 @@ class BaseModelSqlv2 {
                       }).then((r) => (lookedUpAttachment.signedUrl = r)),
                     );
 
-                    relativePath = relativePath.replace(
-                      'nc/uploads',
-                      'nc/thumbnails',
-                    );
+                      if (!lookedUpAttachment.mimetype?.startsWith('image/')) {
+                        continue;
+                      }
+
+                      relativePath = relativePath.replace(
+                        'nc/uploads',
+                        'nc/thumbnails',
+                      );
 
                     lookedUpAttachment.thumbnails = {
                       tiny: {},
@@ -7304,6 +7312,10 @@ class BaseModelSqlv2 {
                       path: relativePath,
                     }).then((r) => (attachment.signedPath = r)),
                   );
+
+                  if (!attachment.mimetype?.startsWith('image/')) {
+                    continue;
+                  }
 
                   relativePath = `thumbnails/${relativePath}`;
 
@@ -8505,6 +8517,8 @@ class BaseModelSqlv2 {
                   'mimetype',
                   'size',
                   'icon',
+                  'width',
+                  'height',
                 ]),
               );
             }

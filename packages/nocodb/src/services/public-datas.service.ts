@@ -5,6 +5,7 @@ import { populateUniqueFileName, UITypes, ViewTypes } from 'nocodb-sdk';
 import slash from 'slash';
 import { nocoExecute } from 'nc-help';
 
+import sharp from 'sharp';
 import type { LinkToAnotherRecordColumn } from '~/models';
 import type { NcContext } from '~/interface/config';
 import { Column, Model, Source, View } from '~/models';
@@ -413,6 +414,23 @@ export class PublicDatasService {
           attachments[fieldName].map((att) => att?.title),
         );
 
+        const tempMeta: {
+          width?: number;
+          height?: number;
+        } = {};
+
+        if (file.mimetype.startsWith('image')) {
+          try {
+            const meta = await sharp(file.path, {
+              limitInputPixels: false,
+            }).metadata();
+            tempMeta.width = meta.width;
+            tempMeta.height = meta.height;
+          } catch (e) {
+            // Ignore-if file is not image
+          }
+        }
+
         const fileName = `${nanoid(18)}${path.extname(originalName)}`;
 
         const url = await storageAdapter.fileCreate(
@@ -435,6 +453,7 @@ export class PublicDatasService {
           mimetype: file.mimetype,
           size: file.size,
           icon: mimeIcons[path.extname(originalName).slice(1)] || undefined,
+          ...tempMeta,
         });
       }
     }

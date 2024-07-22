@@ -6,6 +6,7 @@ import { nanoid } from 'nanoid';
 import slash from 'slash';
 import PQueue from 'p-queue';
 import axios from 'axios';
+import sharp from 'sharp';
 import type { AttachmentReqType, FileType } from 'nocodb-sdk';
 import type { NcRequest } from '~/interface/config';
 import { AppHooksService } from '~/services/app-hooks/app-hooks.service';
@@ -56,6 +57,26 @@ export class AttachmentsService {
             5,
           )}${path.extname(originalName)}`;
 
+          const tempMetadata: {
+            width?: number;
+            height?: number;
+          } = {};
+
+          if (file.mimetype.includes('image')) {
+            try {
+              const metadata = await sharp(file.path, {
+                limitInputPixels: false,
+              }).metadata();
+
+              if (metadata.width && metadata.height) {
+                tempMetadata.width = metadata.width;
+                tempMetadata.height = metadata.height;
+              }
+            } catch (e) {
+              // Might be invalid image - ignore
+            }
+          }
+
           const url = await storageAdapter.fileCreate(
             slash(path.join(destPath, fileName)),
             file,
@@ -67,6 +88,8 @@ export class AttachmentsService {
             title: string;
             mimetype: string;
             size: number;
+            width?: number;
+            height?: number;
             icon?: string;
             signedPath?: string;
             signedUrl?: string;
@@ -76,6 +99,7 @@ export class AttachmentsService {
             mimetype: file.mimetype,
             size: file.size,
             icon: mimeIcons[path.extname(originalName).slice(1)] || undefined,
+            ...tempMetadata,
           };
 
           // if `url` is null, then it is local attachment
