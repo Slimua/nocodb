@@ -118,7 +118,6 @@ export class AttachmentsService {
         base_id: RootScopes.ROOT,
         workspace_id: RootScopes.ROOT,
       },
-      ncSiteUrl: param.req.ncSiteUrl,
       attachments,
     });
 
@@ -208,7 +207,6 @@ export class AttachmentsService {
         base_id: RootScopes.ROOT,
         workspace_id: RootScopes.ROOT,
       },
-      ncSiteUrl: param.req.ncSiteUrl,
       attachments,
     });
 

@@ -125,5 +125,4 @@ export interface DataExportJobData extends JobData {
 
 export interface ThumbnailGeneratorJobData extends JobData {
   attachments: AttachmentResType[];
-  ncSiteUrl: string;
 }
