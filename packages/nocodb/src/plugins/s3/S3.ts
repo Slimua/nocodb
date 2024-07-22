@@ -49,7 +49,10 @@ export default class S3 implements IStorageAdapterV2 {
       uploadParams.ContentType = response.headers['content-type'];
 
       const data = await this.upload(uploadParams);
-      return data;
+      return {
+        url: data,
+        data: response.data,
+      };
     } catch (error) {
       throw error;
     }

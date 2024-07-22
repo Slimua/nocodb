@@ -69,7 +69,10 @@ export default class Backblaze implements IStorageAdapterV2 {
               reject(err1);
             }
             if (data) {
-              resolve(data.Location);
+              resolve({
+                url: data.Location,
+                data: response.data,
+              });
             }
           });
         })

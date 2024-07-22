@@ -190,10 +190,30 @@ export class AttachmentsService {
             5,
           )}${path.extname(fileNameWithExt)}`;
 
-          const attachmentUrl = await storageAdapter.fileCreateByUrl(
-            slash(path.join(destPath, fileName)),
-            finalUrl,
-          );
+          const { url: attachmentUrl, data: file } =
+            await storageAdapter.fileCreateByUrl(
+              slash(path.join(destPath, fileName)),
+              finalUrl,
+            );
+
+          const tempMetadata: {
+            width?: number;
+            height?: number;
+          } = {};
+
+          try {
+            const metadata = await sharp(file, {
+              limitInputPixels: true,
+            }).metadata();
+
+            if (metadata.width && metadata.height) {
+              tempMetadata.width = metadata.width;
+              tempMetadata.height = metadata.height;
+            }
+          } catch (e) {
+            // Might be invalid image - ignore
+          }
+
           // if `attachmentUrl` is null, then it is local attachment
           // then store the attachment path only
           // url will be constructed in `useAttachmentCell`
@@ -212,6 +232,7 @@ export class AttachmentsService {
             size: size ? parseInt(size) : urlMeta.size,
             icon:
               mimeIcons[path.extname(fileNameWithExt).slice(1)] || undefined,
+            ...tempMetadata,
           });
         } catch (e) {
           errors.push(e);

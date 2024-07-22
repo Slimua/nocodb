@@ -488,15 +488,33 @@ export class PublicDatasService {
         file?.fileName || file.url.split('/').pop(),
       )}`;
 
-      const attachmentUrl: string | null = await storageAdapter.fileCreateByUrl(
+      const { url, data } = await storageAdapter.fileCreateByUrl(
         slash(path.join('nc', 'uploads', ...filePath, fileName)),
         file.url,
       );
 
+      const tempMetadata: {
+        width?: number;
+        height?: number;
+      } = {};
+
+      try {
+        const metadata = await sharp(data, {
+          limitInputPixels: true,
+        }).metadata();
+
+        if (metadata.width && metadata.height) {
+          tempMetadata.width = metadata.width;
+          tempMetadata.height = metadata.height;
+        }
+      } catch (e) {
+        // Might be invalid image - ignore
+      }
+
       let attachmentPath: string | undefined;
 
       // if `attachmentUrl` is null, then it is local attachment
-      if (!attachmentUrl) {
+      if (!url) {
         // then store the attachment path only
         // url will be constructed in `useAttachmentCell`
         attachmentPath = `download/${filePath.join('/')}/${fileName}`;
@@ -507,12 +525,13 @@ export class PublicDatasService {
         file.uploadIndex ?? attachments[file.fieldName].length,
         0,
         {
-          ...(attachmentUrl ? { url: attachmentUrl } : {}),
+          ...(url ? { url: url } : {}),
           ...(attachmentPath ? { path: attachmentPath } : {}),
           title: file.fileName,
           mimetype: file.mimetype,
           size: file.size,
           icon: mimeIcons[path.extname(fileName).slice(1)] || undefined,
+          ...tempMetadata,
         },
       );
     }

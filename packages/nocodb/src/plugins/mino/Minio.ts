@@ -117,11 +117,12 @@ export default class Minio implements IStorageAdapterV2 {
           this.minioClient
             .putObject(this.input?.bucket, key, response.data, metaData)
             .then(() => {
-              resolve(
-                `http${this.input.useSSL ? 's' : ''}://${this.input.endPoint}:${
-                  this.input.port
-                }/${this.input.bucket}/${key}`,
-              );
+              resolve({
+                url: `http${this.input.useSSL ? 's' : ''}://${
+                  this.input.endPoint
+                }:${this.input.port}/${this.input.bucket}/${key}`,
+                data: response.data,
+              });
             })
             .catch(reject);
         })

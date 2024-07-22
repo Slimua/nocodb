@@ -118,7 +118,7 @@ export default class Gcs implements IStorageAdapterV2 {
             .bucket(this.bucketName)
             .file(destPath)
             .save(response.data)
-            .then((res) => resolve(res))
+            .then((res) => resolve({ url: res, data: response.data }))
             .catch(reject);
         })
         .catch((error) => {
