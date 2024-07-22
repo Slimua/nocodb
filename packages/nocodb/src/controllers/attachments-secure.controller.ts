@@ -1,4 +1,5 @@
 import path from 'path';
+import fs from 'fs';
 import {
   Body,
   Controller,
@@ -82,9 +83,15 @@ export class AttachmentsSecureController {
         queryFilename = query.get('filename');
       }
 
+      const filePath = param.split('/')[2] === 'thumbnails' ? '' : 'uploads';
+
       const file = await this.attachmentsService.getFile({
-        path: path.join('nc', 'uploads', fpath),
+        path: path.join('nc', filePath, fpath),
       });
+
+      if (!fs.existsSync(file.path)) {
+        return res.status(404).send('File not found');
+      }
 
       if (this.attachmentsService.previewAvailable(file.type)) {
         if (queryFilename) {
