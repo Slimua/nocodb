@@ -1,7 +1,5 @@
 import { forwardRef, Module } from '@nestjs/common';
 import { BullModule } from '@nestjs/bull';
-import { MulterModule } from '@nestjs/platform-express';
-import multer from 'multer';
 import { NocoModule } from '~/modules/noco.module';
 
 // Jobs
@@ -21,8 +19,6 @@ import { WebhookHandlerProcessor } from '~/modules/jobs/jobs/webhook-handler/web
 import { DataExportProcessor } from '~/modules/jobs/jobs/data-export/data-export.processor';
 import { DataExportController } from '~/modules/jobs/jobs/data-export/data-export.controller';
 import { ThumbnailGeneratorProcessor } from '~/modules/jobs/jobs/thumbnail-generator/thumbnail-generator.processor';
-import { AttachmentsSecureController } from '~/modules/jobs/jobs/thumbnail-generator/attachments-secure.controller';
-import { AttachmentsController } from '~/modules/jobs/jobs/thumbnail-generator/attachments.controller';
 
 // Jobs Module Related
 import { JobsLogService } from '~/modules/jobs/jobs/jobs-log.service';
@@ -35,18 +31,10 @@ import { JobsEventService } from '~/modules/jobs/jobs-event.service';
 import { JobsService as FallbackJobsService } from '~/modules/jobs/fallback/jobs.service';
 import { QueueService as FallbackQueueService } from '~/modules/jobs/fallback/fallback-queue.service';
 import { JOBS_QUEUE } from '~/interface/Jobs';
-import { AttachmentsService } from '~/modules/jobs/jobs/thumbnail-generator/attachments.service';
-import { NC_ATTACHMENT_FIELD_SIZE } from '~/constants';
 
 export const JobsModuleMetadata = {
   imports: [
     forwardRef(() => NocoModule),
-    MulterModule.register({
-      storage: multer.diskStorage({}),
-      limits: {
-        fieldSize: NC_ATTACHMENT_FIELD_SIZE,
-      },
-    }),
     ...(process.env.NC_REDIS_JOB_URL
       ? [
           BullModule.forRoot({
@@ -68,9 +56,6 @@ export const JobsModuleMetadata = {
           SourceCreateController,
           SourceDeleteController,
           DataExportController,
-          ...(process.env.NC_SECURE_ATTACHMENTS === 'true'
-            ? [AttachmentsSecureController]
-            : [AttachmentsController]),
         ]
       : []),
   ],
@@ -84,7 +69,6 @@ export const JobsModuleMetadata = {
         ? JobsService
         : FallbackJobsService,
     },
-    AttachmentsService,
     JobsLogService,
     ExportService,
     ImportService,
@@ -97,7 +81,7 @@ export const JobsModuleMetadata = {
     DataExportProcessor,
     ThumbnailGeneratorProcessor,
   ],
-  exports: ['JobsService', AttachmentsService],
+  exports: ['JobsService'],
 };
 
 @Module(JobsModuleMetadata)

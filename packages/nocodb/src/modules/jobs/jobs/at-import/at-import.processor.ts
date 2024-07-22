@@ -18,7 +18,7 @@ import type { UserType } from 'nocodb-sdk';
 import type { AtImportJobData } from '~/interface/Jobs';
 import { type Base, Model, Source } from '~/models';
 import { sanitizeColumnName } from '~/helpers';
-import { AttachmentsService } from '~/modules/jobs/jobs/thumbnail-generator/attachments.service';
+import { AttachmentsService } from '~/services/attachments.service';
 import { ColumnsService } from '~/services/columns.service';
 import { BulkDataAliasService } from '~/services/bulk-data-alias.service';
 import { FiltersService } from '~/services/filters.service';

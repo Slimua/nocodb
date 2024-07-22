@@ -20,7 +20,7 @@ import { Response } from 'express';
 import type { AttachmentReqType, FileType } from 'nocodb-sdk';
 import type { NcRequest } from '~/interface/config';
 import { GlobalGuard } from '~/guards/global/global.guard';
-import { AttachmentsService } from '~/modules/jobs/jobs/thumbnail-generator/attachments.service';
+import { AttachmentsService } from '~/services/attachments.service';
 import { PresignedUrl } from '~/models';
 import { UploadAllowedInterceptor } from '~/interceptors/is-upload-allowed/is-upload-allowed.interceptor';
 import { MetaApiLimiterGuard } from '~/guards/meta-api-limiter.guard';

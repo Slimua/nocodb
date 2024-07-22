@@ -10,7 +10,7 @@ import type { ThumbnailGeneratorJobData } from '~/interface/Jobs';
 import { JOBS_QUEUE, JobTypes } from '~/interface/Jobs';
 import NcPluginMgrv2 from '~/helpers/NcPluginMgrv2';
 import { PresignedUrl } from '~/models';
-import { AttachmentsService } from '~/modules/jobs/jobs/thumbnail-generator/attachments.service';
+import { AttachmentsService } from '~/services/attachments.service';
 
 const attachmentPreviews = ['image/'];
 
