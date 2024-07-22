@@ -18,7 +18,9 @@ export default class Spaces implements IStorageAdapterV2 {
   async fileCreate(key: string, file: XcFile): Promise<any> {
     const fileStream = fs.createReadStream(file.path);
 
-    return this.fileCreateByStream(key, fileStream);
+    return this.fileCreateByStream(key, fileStream, {
+      mimetype: file?.mimetype,
+    });
   }
 
   async fileCreateByUrl(key: string, url: string): Promise<any> {
@@ -58,11 +60,18 @@ export default class Spaces implements IStorageAdapterV2 {
     });
   }
 
-  async fileCreateByStream(key: string, stream: Readable): Promise<void> {
+  async fileCreateByStream(
+    key: string,
+    stream: Readable,
+    options?: {
+      mimetype?: string;
+    },
+  ): Promise<void> {
     const uploadParams: any = {
       ACL: 'public-read',
       Body: stream,
       Key: key,
+      ContentType: options?.mimetype || 'application/octet-stream',
     };
     return new Promise((resolve, reject) => {
       // call S3 to retrieve upload file to specified bucket

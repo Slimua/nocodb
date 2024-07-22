@@ -17,7 +17,9 @@ export default class Minio implements IStorageAdapterV2 {
 
   async fileCreate(key: string, file: XcFile): Promise<any> {
     const fileStream = fs.createReadStream(file.path);
-    return this.fileCreateByStream(key, fileStream);
+    return this.fileCreateByStream(key, fileStream, {
+      mimetype: file?.mimetype,
+    });
   }
 
   public async fileDelete(_path: string): Promise<any> {
@@ -107,11 +109,18 @@ export default class Minio implements IStorageAdapterV2 {
     });
   }
 
-  async fileCreateByStream(key: string, stream: Readable): Promise<any> {
+  async fileCreateByStream(
+    key: string,
+    stream: Readable,
+    options?: {
+      mimetype?: string;
+    },
+  ): Promise<any> {
     return new Promise((resolve, reject) => {
       // uploadParams.Body = fileStream;
       // uploadParams.Key = key;
       const metaData = {
+        'Content-Type': options?.mimetype,
         // 'X-Amz-Meta-Testing': 1234,
         // 'run': 5678
       };
