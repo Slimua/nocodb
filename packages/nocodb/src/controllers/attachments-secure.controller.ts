@@ -86,17 +86,13 @@ export class AttachmentsSecureController {
         path: path.join('nc', 'uploads', fpath),
       });
 
-      if (this.attachmentsService.previewAvailable(file.type)) {
-        if (queryFilename) {
-          res.setHeader(
-            'Content-Disposition',
-            `attachment; filename=${queryFilename}`,
-          );
-        }
-        res.sendFile(file.path);
-      } else {
-        res.download(file.path, queryFilename);
+      if (queryFilename) {
+        res.setHeader(
+          'Content-Disposition',
+          `attachment; filename=${queryFilename}`,
+        );
       }
+      res.sendFile(file.path);
     } catch (e) {
       res.status(404).send('Not found');
     }
