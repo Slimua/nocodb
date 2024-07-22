@@ -252,7 +252,7 @@ const handleFileDelete = (i: number) => {
                 type="text"
                 @click="downloadFile(item)"
               >
-                <component :is="iconMap.download" class="!text-xs" />
+                <component :is="iconMap.download" class="!text-xs h-13px w-13px" />
               </NcButton>
             </NcTooltip>
 
@@ -264,7 +264,7 @@ const handleFileDelete = (i: number) => {
                 type="text"
                 @click="renameFile(item, i)"
               >
-                <component :is="iconMap.rename" class="text-xs" />
+                <component :is="iconMap.rename" class="text-xs h-13px w-13px" />
               </NcButton>
             </NcTooltip>
 
@@ -276,7 +276,11 @@ const handleFileDelete = (i: number) => {
                 type="text"
                 @click="onRemoveFileClick(item.title, i)"
               >
-                <component :is="iconMap.delete" v-if="isSharedForm || (isUIAllowed('dataEdit') && !isPublic)" />
+                <component
+                  :is="iconMap.delete"
+                  v-if="isSharedForm || (isUIAllowed('dataEdit') && !isPublic)"
+                  class="text-xs h-13px w-13px"
+                />
               </NcButton>
             </NcTooltip>
           </div>
