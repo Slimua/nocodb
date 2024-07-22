@@ -7206,45 +7206,49 @@ class BaseModelSqlv2 {
               if (Array.isArray(attachment)) {
                 for (const lookedUpAttachment of attachment) {
                   if (lookedUpAttachment?.path) {
+                    let relativePath = lookedUpAttachment.path.replace(
+                      /^download\//,
+                      '',
+                    );
+
                     promises.push(
                       PresignedUrl.getSignedUrl({
-                        path: lookedUpAttachment.path.replace(
-                          /^download\//,
-                          '',
-                        ),
+                        path: relativePath,
                       }).then((r) => (lookedUpAttachment.signedPath = r)),
                     );
 
-                    lookedUpAttachment.thumbnails = {};
+                    lookedUpAttachment.thumbnails = {
+                      tiny: {},
+                      small: {},
+                      card_cover: {},
+                    };
+
+                    relativePath = `thumbnails/${relativePath}`;
 
                     promises.push(
                       PresignedUrl.getSignedUrl({
-                        path: `thumbnails/${lookedUpAttachment.path.replace(
-                          /^download\//,
-                          '',
-                        )}/tiny.jpg`,
-                      }).then((r) => (lookedUpAttachment.thumbnails.tiny = r)),
-                    );
-                    promises.push(
-                      PresignedUrl.getSignedUrl({
-                        path: `thumbnails/${lookedUpAttachment.path.replace(
-                          /^download\//,
-                          '',
-                        )}/small.jpg`,
-                      }).then((r) => (lookedUpAttachment.thumbnails.small = r)),
-                    );
-                    promises.push(
-                      PresignedUrl.getSignedUrl({
-                        path: `thumbnails/${lookedUpAttachment.path.replace(
-                          /^download\//,
-                          '',
-                        )}/card_cover.jpg`,
+                        path: `${relativePath}/tiny.jpg`,
                       }).then(
-                        (r) => (lookedUpAttachment.thumbnails.card_cover = r),
+                        (r) => (lookedUpAttachment.thumbnails.tiny.path = r),
+                      ),
+                    );
+                    promises.push(
+                      PresignedUrl.getSignedUrl({
+                        path: `${relativePath}/small.jpg`,
+                      }).then(
+                        (r) => (lookedUpAttachment.thumbnails.small.path = r),
+                      ),
+                    );
+                    promises.push(
+                      PresignedUrl.getSignedUrl({
+                        path: `${relativePath}/card_cover.jpg`,
+                      }).then(
+                        (r) =>
+                          (lookedUpAttachment.thumbnails.card_cover.path = r),
                       ),
                     );
                   } else if (lookedUpAttachment?.url) {
-                    const relativePath = decodeURI(
+                    let relativePath = decodeURI(
                       new URL(lookedUpAttachment.url).pathname,
                     );
                     promises.push(
@@ -7252,79 +7256,114 @@ class BaseModelSqlv2 {
                         path: relativePath,
                       }).then((r) => (lookedUpAttachment.signedUrl = r)),
                     );
-                    lookedUpAttachment.thumbnails = {};
-                    promises.push(
-                      PresignedUrl.getSignedUrl({
-                        path: `thumbnails/${relativePath}/tiny.jpg`,
-                      }).then((r) => (lookedUpAttachment.thumbnails.tiny = r)),
+
+                    relativePath = relativePath.replace(
+                      'nc/uploads',
+                      'nc/thumbnails',
                     );
+
+                    lookedUpAttachment.thumbnails = {
+                      tiny: {},
+                      small: {},
+                      card_cover: {},
+                    };
+
                     promises.push(
                       PresignedUrl.getSignedUrl({
-                        path: `thumbnails/${relativePath}/small.jpg`,
-                      }).then((r) => (lookedUpAttachment.thumbnails.small = r)),
-                    );
-                    promises.push(
-                      PresignedUrl.getSignedUrl({
-                        path: `thumbnails/${relativePath}/card_cover.jpg`,
+                        path: `${relativePath}/tiny.jpg`,
                       }).then(
-                        (r) => (lookedUpAttachment.thumbnails.card_cover = r),
+                        (r) =>
+                          (lookedUpAttachment.thumbnails.tiny.signedUrl = r),
+                      ),
+                    );
+                    promises.push(
+                      PresignedUrl.getSignedUrl({
+                        path: `${relativePath}/small.jpg`,
+                      }).then(
+                        (r) =>
+                          (lookedUpAttachment.thumbnails.small.signedUrl = r),
+                      ),
+                    );
+                    promises.push(
+                      PresignedUrl.getSignedUrl({
+                        path: `${relativePath}/card_cover.jpg`,
+                      }).then(
+                        (r) =>
+                          (lookedUpAttachment.thumbnails.card_cover.signedUrl =
+                            r),
                       ),
                     );
                   }
                 }
               } else {
                 if (attachment?.path) {
-                  const relativeUri = attachment.path.replace(
-                    /^download\//,
-                    '',
-                  );
+                  let relativePath = attachment.path.replace(/^download\//, '');
 
                   promises.push(
                     PresignedUrl.getSignedUrl({
-                      path: relativeUri,
+                      path: relativePath,
                     }).then((r) => (attachment.signedPath = r)),
                   );
 
-                  attachment.thumbnails = {};
+                  relativePath = `thumbnails/${relativePath}`;
+
+                  attachment.thumbnails = {
+                    tiny: {},
+                    small: {},
+                    card_cover: {},
+                  };
+
                   promises.push(
                     PresignedUrl.getSignedUrl({
-                      path: `thumbnails/${relativeUri}/tiny.jpg`,
-                    }).then((r) => (attachment.thumbnails.tiny = r)),
+                      path: `${relativePath}/tiny.jpg`,
+                    }).then((r) => (attachment.thumbnails.tiny.path = r)),
                   );
                   promises.push(
                     PresignedUrl.getSignedUrl({
-                      path: `thumbnails/${relativeUri}/small.jpg`,
-                    }).then((r) => (attachment.thumbnails.small = r)),
+                      path: `${relativePath}/small.jpg`,
+                    }).then((r) => (attachment.thumbnails.small.path = r)),
                   );
                   promises.push(
                     PresignedUrl.getSignedUrl({
-                      path: `thumbnails/${relativeUri}/card_cover.jpg`,
-                    }).then((r) => (attachment.thumbnails.card_cover = r)),
+                      path: `${relativePath}/card_cover.jpg`,
+                    }).then((r) => (attachment.thumbnails.card_cover.path = r)),
                   );
                 } else if (attachment?.url) {
-                  const relativeUri = decodeURI(
+                  let relativePath = decodeURI(
                     new URL(attachment.url).pathname,
                   );
                   promises.push(
                     PresignedUrl.getSignedUrl({
-                      path: relativeUri,
+                      path: relativePath,
                     }).then((r) => (attachment.signedUrl = r)),
                   );
-                  attachment.thumbnails = {};
+                  relativePath = relativePath.replace(
+                    'nc/uploads',
+                    'nc/thumbnails',
+                  );
+
+                  attachment.thumbnails = {
+                    tiny: {},
+                    small: {},
+                    card_cover: {},
+                  };
+
                   promises.push(
                     PresignedUrl.getSignedUrl({
-                      path: `thumbnails/${relativeUri}/tiny.jpg`,
-                    }).then((r) => (attachment.thumbnails.tiny = r)),
+                      path: `${relativePath}/tiny.jpg`,
+                    }).then((r) => (attachment.thumbnails.tiny.signedUrl = r)),
                   );
                   promises.push(
                     PresignedUrl.getSignedUrl({
-                      path: `thumbnails/${relativeUri}/small.jpg`,
-                    }).then((r) => (attachment.thumbnails.small = r)),
+                      path: `${relativePath}/small.jpg`,
+                    }).then((r) => (attachment.thumbnails.small.signedUrl = r)),
                   );
                   promises.push(
                     PresignedUrl.getSignedUrl({
-                      path: `thumbnails/${relativeUri}/card_cover.jpg`,
-                    }).then((r) => (attachment.thumbnails.card_cover = r)),
+                      path: `${relativePath}/card_cover.jpg`,
+                    }).then(
+                      (r) => (attachment.thumbnails.card_cover.signedUrl = r),
+                    ),
                   );
                 }
               }
