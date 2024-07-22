@@ -16,33 +16,8 @@ export default class Minio implements IStorageAdapterV2 {
   }
 
   async fileCreate(key: string, file: XcFile): Promise<any> {
-    return new Promise((resolve, reject) => {
-      // Configure the file stream and obtain the upload parameters
-      const fileStream = fs.createReadStream(file.path);
-      fileStream.on('error', (err) => {
-        console.log('File Error', err);
-        reject(err);
-      });
-
-      // uploadParams.Body = fileStream;
-      // uploadParams.Key = key;
-      const metaData = {
-        'Content-Type': file.mimetype,
-        // 'X-Amz-Meta-Testing': 1234,
-        // 'run': 5678
-      };
-      // call S3 to retrieve upload file to specified bucket
-      this.minioClient
-        .putObject(this.input?.bucket, key, fileStream, metaData)
-        .then(() => {
-          resolve(
-            `http${this.input.useSSL ? 's' : ''}://${this.input.endPoint}:${
-              this.input.port
-            }/${this.input.bucket}/${key}`,
-          );
-        })
-        .catch(reject);
-    });
+    const fileStream = fs.createReadStream(file.path);
+    return this.fileCreateByStream(key, fileStream);
   }
 
   public async fileDelete(_path: string): Promise<any> {

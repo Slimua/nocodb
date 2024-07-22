@@ -22,9 +22,12 @@ import { UsersController } from '~/controllers/users/users.controller';
 import { UsersService } from '~/services/users/users.service';
 
 /* Metas */
+import { NC_ATTACHMENT_FIELD_SIZE } from '~/constants';
 import { MetaService } from '~/meta/meta.service';
 import { ApiDocsController } from '~/controllers/api-docs/api-docs.controller';
 import { ApiTokensController } from '~/controllers/api-tokens.controller';
+import { AttachmentsController } from '~/controllers/attachments.controller';
+import { AttachmentsSecureController } from '~/controllers/attachments-secure.controller';
 import { AuditsController } from '~/controllers/audits.controller';
 import { SourcesController } from '~/controllers/sources.controller';
 import { CachesController } from '~/controllers/caches.controller';
@@ -56,6 +59,7 @@ import { UtilsController } from '~/controllers/utils.controller';
 import { ViewColumnsController } from '~/controllers/view-columns.controller';
 import { ViewsController } from '~/controllers/views.controller';
 import { ApiTokensService } from '~/services/api-tokens.service';
+import { AttachmentsService } from '~/services/attachments.service';
 import { AuditsService } from '~/services/audits.service';
 import { SourcesService } from '~/services/sources.service';
 import { CachesService } from '~/services/caches.service';
@@ -98,9 +102,6 @@ import { ExtensionsService } from '~/services/extensions.service';
 import { ExtensionsController } from '~/controllers/extensions.controller';
 import { JobsMetaService } from '~/services/jobs-meta.service';
 import { JobsMetaController } from '~/controllers/jobs-meta.controller';
-import { AttachmentsSecureController } from '~/controllers/attachments-secure.controller';
-import { AttachmentsController } from '~/controllers/attachments.controller';
-import { AttachmentsService } from '~/services/attachments.service';
 
 /* Datas */
 import { DataTableController } from '~/controllers/data-table.controller';
@@ -121,7 +122,6 @@ import { PublicDatasExportService } from '~/services/public-datas-export.service
 import { PublicDatasService } from '~/services/public-datas.service';
 import { CalendarDatasController } from '~/controllers/calendars-datas.controller';
 import { CalendarDatasService } from '~/services/calendar-datas.service';
-import { NC_ATTACHMENT_FIELD_SIZE } from '~/constants';
 
 export const nocoModuleMetadata = {
   imports: [
@@ -143,6 +143,9 @@ export const nocoModuleMetadata = {
           /* Metas */
           ApiDocsController,
           ApiTokensController,
+          ...(process.env.NC_SECURE_ATTACHMENTS === 'true'
+            ? [AttachmentsSecureController]
+            : [AttachmentsController]),
           AuditsController,
           SourcesController,
           CachesController,
@@ -178,10 +181,6 @@ export const nocoModuleMetadata = {
           CommandPaletteController,
           ExtensionsController,
           JobsMetaController,
-          ...(process.env.NC_SECURE_ATTACHMENTS === 'true'
-            ? [AttachmentsSecureController]
-            : [AttachmentsController]),
-
           /* Datas */
           DataTableController,
           DatasController,
@@ -213,6 +212,7 @@ export const nocoModuleMetadata = {
     /* Metas */
     ApiDocsService,
     ApiTokensService,
+    AttachmentsService,
     AuditsService,
     SourcesService,
     CachesService,
@@ -249,7 +249,6 @@ export const nocoModuleMetadata = {
     CommandPaletteService,
     ExtensionsService,
     JobsMetaService,
-    AttachmentsService,
 
     /* Datas */
     DataTableService,
@@ -287,12 +286,12 @@ export const nocoModuleMetadata = {
     GalleriesService,
     KanbansService,
     BasesService,
+    AttachmentsService,
     BaseUsersService,
     HooksService,
     MetaDiffsService,
     SourcesService,
     UtilsService,
-    AttachmentsService,
 
     /* Datas */
     DatasService,
