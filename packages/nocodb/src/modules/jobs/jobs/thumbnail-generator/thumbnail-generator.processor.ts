@@ -91,6 +91,9 @@ export class ThumbnailGeneratorProcessor {
           await (storageAdapter as any).fileCreateByStream(
             thumbnailPath,
             Readable.from(resizedImage),
+            {
+              mimetype: 'image/jpeg',
+            },
           );
         }),
       );
@@ -114,10 +117,8 @@ export class ThumbnailGeneratorProcessor {
       relativePath = attachment.path.replace(/^download\//, '');
       url = await PresignedUrl.getSignedUrl({ path: relativePath });
     } else if (attachment.url) {
-      relativePath = decodeURI(attachment.url.split('.amazonaws.com/')[1]);
-      signedUrl = attachment.url.includes('.amazonaws.com/')
-        ? await PresignedUrl.getSignedUrl({ s3: true, path: relativePath })
-        : attachment.url;
+      relativePath = decodeURI(new URL(attachment.url).pathname);
+      signedUrl = await PresignedUrl.getSignedUrl({ path: relativePath });
 
       file = (await axios({ url: signedUrl, responseType: 'arraybuffer' }))
         .data as Buffer;
@@ -133,8 +134,8 @@ export class ThumbnailGeneratorProcessor {
       file = tempPath.path;
     }
 
-    if (relativePath.startsWith('nc/uploads/')) {
-      relativePath = relativePath.replace('nc/uploads/', '');
+    if (relativePath.startsWith('/nc/uploads/')) {
+      relativePath = relativePath.replace('/nc/uploads/', '');
     }
 
     return { file, relativePath };

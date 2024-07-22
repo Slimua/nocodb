@@ -7261,14 +7261,14 @@ class BaseModelSqlv2 {
                       }).then((r) => (lookedUpAttachment.signedUrl = r)),
                     );
 
-                      if (!lookedUpAttachment.mimetype?.startsWith('image/')) {
-                        continue;
-                      }
+                    if (!lookedUpAttachment.mimetype?.startsWith('image/')) {
+                      continue;
+                    }
 
-                      relativePath = relativePath.replace(
-                        'nc/uploads',
-                        'nc/thumbnails',
-                      );
+                    relativePath = relativePath.replace(
+                      'nc/uploads',
+                      'nc/thumbnails',
+                    );
 
                     lookedUpAttachment.thumbnails = {
                       tiny: {},
