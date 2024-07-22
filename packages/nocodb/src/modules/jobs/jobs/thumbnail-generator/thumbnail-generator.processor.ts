@@ -35,15 +35,15 @@ export class ThumbnailGeneratorProcessor {
           const thumbnail = await this.generateThumbnail(attachment);
           return {
             path: attachment.path ?? attachment.url,
-            card_cover: thumbnail.card_cover,
-            small: thumbnail.small,
-            tiny: thumbnail.tiny,
+            card_cover: thumbnail?.card_cover,
+            small: thumbnail?.small,
+            tiny: thumbnail?.tiny,
           };
         });
 
       return await Promise.all(thumbnailPromises);
     } catch (error) {
-      console.log(error);
+      this.logger.error('Failed to generate thumbnails', error);
     }
   }
 
@@ -75,7 +75,8 @@ export class ThumbnailGeneratorProcessor {
               height = 64;
               break;
             default:
-              throw new Error(`Unknown thumbnail size: ${size}`);
+              height = 32;
+              break;
           }
 
           const resizedImage = await sharp(file, {
@@ -96,7 +97,6 @@ export class ThumbnailGeneratorProcessor {
 
       return thumbnailPaths;
     } catch (error) {
-      console.log(error);
       this.logger.error(
         `Failed to generate thumbnails for ${attachment.path}`,
         error,
