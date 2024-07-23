@@ -71,6 +71,21 @@ const logout = async () => {
               </NcMenuItem>
 
               <NcMenuItem
+                key="profile"
+                class="item"
+                :class="{
+                  active: $route.params.page === 'integration',
+                }"
+                @click="navigateTo('/account/integration')"
+              >
+                <div class="flex items-center space-x-2">
+                  <GeneralIcon icon="gitCommit" class="!h-3.5 !w-3.5" />
+
+                  <div class="select-none">{{ $t('general.connections') }}</div>
+                </div>
+              </NcMenuItem>
+
+              <NcMenuItem
                 key="tokens"
                 class="item"
                 :class="{

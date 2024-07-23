@@ -1,12 +1,4 @@
-export enum ClientType {
-  MYSQL = 'mysql2',
-  MSSQL = 'mssql',
-  PG = 'pg',
-  SQLITE = 'sqlite3',
-  VITESS = 'vitess',
-  SNOWFLAKE = 'snowflake',
-  DATABRICKS = 'databricks',
-}
+export { ClientType } from 'nocodb-sdk'
 
 export enum Language {
   ar = 'العربية',
@@ -180,4 +172,9 @@ export enum AuditLogsDateRange {
 
 export enum ExtensionsEvents {
   DUPLICATE = 'duplicate',
+}
+
+
+export enum IntegrationStoreEvents {
+  INTEGRATION_ADD = 'integration-add',
 }

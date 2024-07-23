@@ -42,6 +42,8 @@ const isReloading = ref(false)
 const isDeleteBaseModalOpen = ref(false)
 const toBeDeletedBase = ref<SourceType | undefined>()
 
+const searchQuery = ref<string>('')
+
 async function updateIfSourceOrderIsNullOrDuplicate() {
   const sourceOrderSet = new Set()
   let hasNullOrDuplicates = false
@@ -257,12 +259,31 @@ const isNewBaseModalOpen = computed({
 
 const activeSource = ref<SourceType>(null)
 const openedTab = ref('erd')
+
+const isSearchResultAvailable = () => {
+  return (
+    sources.value.filter((s) => s?.alias?.toLowerCase()?.includes(searchQuery.value?.toLowerCase())).length ||
+    'default'.includes(searchQuery.value?.toLowerCase())
+  )
+}
 </script>
 
 <template>
   <div class="flex flex-col h-full" data-testid="nc-settings-datasources-tab">
-    <div class="px-4 py-2 flex justify-between">
-      <a-breadcrumb separator=">" class="w-full cursor-pointer font-weight-bold">
+    <div v-if="vState !== DataSourcesSubTab.New" class="px-4 py-3 flex justify-between gap-3">
+      <a-input
+        v-if="!activeSource"
+        v-model:value="searchQuery"
+        type="text"
+        class="nc-search-data-source-input !max-w-90 nc-input-sm"
+        placeholder="Search data source"
+        allow-clear
+      >
+        <template #prefix>
+          <GeneralIcon icon="search" class="mr-2 h-4 w-4 text-gray-500" />
+        </template>
+      </a-input>
+      <a-breadcrumb v-else separator=">" class="w-full cursor-pointer font-weight-bold">
         <a-breadcrumb-item @click="activeSource = null">
           <a class="!no-underline">Data Sources</a>
         </a-breadcrumb-item>
@@ -284,7 +305,13 @@ const openedTab = ref('erd')
         </div>
       </NcButton>
     </div>
-    <div data-testid="nc-settings-datasources" class="flex flex-row w-full nc-data-sources-view flex-grow min-h-0">
+    <div
+      data-testid="nc-settings-datasources"
+      class="flex flex-row w-full nc-data-sources-view flex-grow min-h-0"
+      :style="{
+        maxHeight: isNewBaseModalOpen ? '100%' : activeSource ? 'calc(100% - 46px)' : 'calc(100% - 66px)',
+      }"
+    >
       <template v-if="activeSource">
         <NcTabs v-model:activeKey="openedTab" class="nc-source-tab w-full">
           <a-tab-pane key="erd">
@@ -293,7 +320,7 @@ const openedTab = ref('erd')
                 <div>{{ $t('title.erdView') }}</div>
               </div>
             </template>
-            <div class="h-full pt-4">
+            <div class="h-full p-4">
               <LazyDashboardSettingsErd
                 class="h-full overflow-auto"
                 :base-id="baseId"
@@ -318,9 +345,8 @@ const openedTab = ref('erd')
                 <div>{{ $t('labels.connectionDetails') }}</div>
               </div>
             </template>
-            <div class="p-6 mt-4 h-full overflow-auto">
+            <div class="h-full">
               <LazyDashboardSettingsDataSourcesEditBase
-                class="w-760px pr-5"
                 :source-id="activeSource.id"
                 @source-updated="loadBases(true)"
                 @close="activeSource = null"
@@ -335,7 +361,7 @@ const openedTab = ref('erd')
               </div>
             </template>
 
-            <div class="pt-4 h-full">
+            <div class="p-4 h-full">
               <LazyDashboardSettingsUIAcl :source-id="activeSource.id" />
             </div>
           </a-tab-pane>
@@ -345,35 +371,44 @@ const openedTab = ref('erd')
                 <div>{{ $t('labels.metaSync') }}</div>
               </div>
             </template>
-            <div class="pt-4 h-full">
+            <div class="p-4 h-full">
               <LazyDashboardSettingsMetadata :source-id="activeSource.id" @source-synced="loadBases(true)" />
             </div>
           </a-tab-pane>
         </NcTabs>
       </template>
-      <div v-else class="flex flex-col w-full overflow-auto mt-1">
-        <div
-          class="overflow-y-auto nc-scrollbar-md"
-          :style="{
-            maxHeight: 'calc(100vh - 200px)',
-          }"
-        >
-          <div class="ds-table-head">
-            <div class="ds-table-row">
+      <div
+        v-else
+        class="flex flex-col w-full"
+        :class="{
+          'overflow-auto': !isNewBaseModalOpen,
+        }"
+      >
+        <template v-if="isNewBaseModalOpen">
+          <DashboardSettingsDataSourcesCreateBase
+            v-model:open="isNewBaseModalOpen"
+            :connection-type="clientType"
+            @source-created="loadBases(true)"
+          />
+        </template>
+        <div v-else class="ds-table overflow-y-auto nc-scrollbar-thin relative max-h-full mx-4 mb-4">
+          <div class="ds-table-head sticky top-0 bg-white z-10">
+            <div class="ds-table-row !border-0">
               <div class="ds-table-col ds-table-enabled cursor-pointer">{{ $t('general.visibility') }}</div>
               <div class="ds-table-col ds-table-name">{{ $t('general.name') }}</div>
+              <div class="ds-table-col ds-table-integration-name">{{ $t('general.connection') }} {{ $t('general.name') }}</div>
               <div class="ds-table-col ds-table-type">{{ $t('general.type') }}</div>
               <div class="ds-table-col ds-table-actions">{{ $t('labels.actions') }}</div>
             </div>
           </div>
-          <div class="ds-table-body">
+          <div class="ds-table-body relative">
             <Draggable :list="sources" item-key="id" handle=".ds-table-handle" @end="moveBase">
-              <template #header>
+              <template v-if="'default'.includes(searchQuery.toLowerCase())" #header>
                 <div v-if="sources[0]" class="ds-table-row border-gray-200 cursor-pointer" @click="activeSource = sources[0]">
                   <div class="ds-table-col ds-table-enabled">
                     <div class="flex items-center gap-1" @click.stop>
                       <div v-if="sources.length > 2" class="ds-table-handle" />
-                      <a-tooltip>
+                      <NcTooltip>
                         <template #title>
                           <template v-if="sources[0].enabled">{{ $t('activity.hideInUI') }}</template>
                           <template v-else>{{ $t('activity.showInUI') }}</template>
@@ -384,7 +419,7 @@ const openedTab = ref('erd')
                           size="small"
                           @change="toggleBase(sources[0], $event)"
                         />
-                      </a-tooltip>
+                      </NcTooltip>
                     </div>
                   </div>
                   <div class="ds-table-col ds-table-name font-medium">
@@ -394,6 +429,9 @@ const openedTab = ref('erd')
                     </div>
                   </div>
 
+                  <div class="ds-table-col ds-table-integration-name">
+                    <div class="flex items-center gap-1">-</div>
+                  </div>
                   <div class="ds-table-col ds-table-type">
                     <div class="flex items-center gap-1">-</div>
                   </div>
@@ -412,11 +450,18 @@ const openedTab = ref('erd')
                 </div>
               </template>
               <template #item="{ element: source, index }">
-                <div v-if="index !== 0" class="ds-table-row border-gray-200 cursor-pointer" @click="activeSource = source">
+                <div
+                  v-if="index !== 0"
+                  class="ds-table-row border-gray-200 cursor-pointer"
+                  :class="{
+                    '!hidden': !source?.alias?.toLowerCase()?.includes(searchQuery.toLowerCase()),
+                  }"
+                  @click="activeSource = source"
+                >
                   <div class="ds-table-col ds-table-enabled">
                     <div class="flex items-center gap-1" @click.stop>
                       <GeneralIcon v-if="sources.length > 2" icon="dragVertical" small class="ds-table-handle" />
-                      <a-tooltip>
+                      <NcTooltip>
                         <template #title>
                           <template v-if="source.enabled">{{ $t('activity.hideInUI') }}</template>
                           <template v-else>{{ $t('activity.showInUI') }}</template>
@@ -427,7 +472,7 @@ const openedTab = ref('erd')
                           size="small"
                           @change="toggleBase(source, $event)"
                         />
-                      </a-tooltip>
+                      </NcTooltip>
                     </div>
                   </div>
                   <div class="ds-table-col ds-table-name font-medium w-full">
@@ -436,39 +481,74 @@ const openedTab = ref('erd')
                       {{ source.is_meta || source.is_local ? $t('general.base') : source.alias }}
                     </span>
                   </div>
+                  <div class="ds-table-col ds-table-integration-name font-medium w-full">
+                    <span class="truncate">
+                      {{ source?.integration_name || '-' }}
+                    </span>
+                  </div>
 
                   <div class="ds-table-col ds-table-type">
-                    <div class="flex items-center gap-2">
-                      <GeneralBaseLogo :source-type="source.type" />
-                      <span class="text-gray-700 capitalize">{{ source.type }}</span>
-                    </div>
+                    <NcBadge rounded="lg" class="flex items-center gap-2 px-2 py-1 !h-7 truncate">
+                      <GeneralBaseLogo :source-type="source.type" class="flex-none" />
+                      <NcTooltip placement="bottom" show-on-truncate-only class="text-sm truncate">
+                        <template #title> {{ clientTypesMap[source.type]?.text || source.type }}</template>
+
+                        {{ source.type && clientTypesMap[source.type] ? clientTypesMap[source.type]?.text : source.type }}
+                      </NcTooltip>
+                    </NcBadge>
                   </div>
-                  <div class="ds-table-col justify-end gap-x-1 ds-table-actions">
-                    <NcTooltip>
-                      <template #title>
-                        {{ $t('general.remove') }}
-                      </template>
-                      <NcButton
-                        v-if="!source.is_meta && !source.is_local"
-                        size="small"
-                        class="nc-action-btn nc-delete-base cursor-pointer outline-0 !w-8 !px-1 !rounded-lg"
-                        type="text"
-                        @click.stop="openDeleteBase(source)"
-                      >
-                        <GeneralIcon icon="delete" class="text-red-500" />
-                      </NcButton>
-                    </NcTooltip>
+                  <div class="ds-table-col justify-end gap-x-1 ds-table-actions" @click.stop>
+                    <div class="flex justify-end">
+                      <NcDropdown v-if="!source.is_meta && !source.is_local" placement="bottomRight">
+                        <NcButton size="small" type="secondary">
+                          <GeneralIcon icon="threeDotVertical" />
+                        </NcButton>
+                        <template #overlay>
+                          <NcMenu>
+                            <NcMenuItem @click="activeSource = source">
+                              <GeneralIcon class="text-gray-800" icon="edit" />
+                              <span>{{ $t('general.edit') }}</span>
+                            </NcMenuItem>
+
+                            <NcDivider />
+                            <NcMenuItem class="!text-red-500 !hover:bg-red-50" @click.stop="openDeleteBase(source)">
+                              <GeneralIcon icon="delete" />
+                              {{ $t('general.remove') }}
+                            </NcMenuItem>
+                          </NcMenu>
+                        </template>
+                      </NcDropdown>
+                    </div>
                   </div>
                 </div>
               </template>
             </Draggable>
+            <div
+              v-show="isReloading"
+              class="flex items-center justify-center absolute left-0 top-0 w-full h-full z-10 pb-10 pointer-events-none"
+            >
+              <div class="flex flex-col justify-center items-center gap-2">
+                <GeneralLoader size="xlarge" />
+                <span class="text-center">{{ $t('general.loading') }}</span>
+              </div>
+            </div>
+            <div
+              v-if="!isReloading && sources?.length && !isSearchResultAvailable()"
+              class="flex-none integration-table-empty flex items-center justify-center py-8 px-6"
+            >
+              <div class="px-2 py-6 text-gray-500 flex flex-col items-center gap-6 text-center">
+                <img
+                  src="~assets/img/placeholder/no-search-result-found.png"
+                  class="!w-[164px] flex-none"
+                  alt="No search results found"
+                />
+
+                {{ $t('title.noResultsMatchedYourSearch') }}
+              </div>
+            </div>
           </div>
         </div>
-        <LazyDashboardSettingsDataSourcesCreateBase
-          v-model:open="isNewBaseModalOpen"
-          :connection-type="clientType"
-          @source-created="loadBases(true)"
-        />
+
         <GeneralDeleteModal
           v-model:visible="isDeleteBaseModalOpen"
           :entity-name="$t('general.datasource')"
@@ -493,8 +573,11 @@ const openedTab = ref('erd')
 </template>
 
 <style scoped lang="scss">
+.ds-table {
+  @apply border-1 border-gray-200 rounded-lg h-full;
+}
 .ds-table-head {
-  @apply flex items-center border-0 text-gray-500;
+  @apply flex items-center border-b-1 text-gray-500 bg-gray-50 text-sm font-weight-500;
 }
 
 .ds-table-body {
@@ -514,15 +597,19 @@ const openedTab = ref('erd')
 }
 
 .ds-table-name {
-  @apply col-span-9 items-center capitalize;
+  @apply col-span-6 items-center capitalize;
+}
+
+.ds-table-integration-name {
+  @apply col-span-5 items-center capitalize;
 }
 
 .ds-table-type {
-  @apply col-span-2 items-center;
+  @apply col-span-3 items-center;
 }
 
 .ds-table-actions {
-  @apply col-span-5 flex w-full justify-center;
+  @apply col-span-2 flex w-full justify-center;
 }
 
 .ds-table-col:last-child {
