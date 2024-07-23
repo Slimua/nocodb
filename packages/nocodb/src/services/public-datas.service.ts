@@ -770,15 +770,6 @@ export class PublicDatasService {
       listArgs.bulkFilterList = JSON.parse(listArgs.bulkFilterList);
     } catch (e) {}
 
-    try {
-      listArgs.sortArr = JSON.parse(listArgs.sortArrJson);
-    } catch (e) {}
-
-    try {
-      listArgs.filterArr = JSON.parse(listArgs.filterArrJson);
-    } catch (e) {}
-
-
     if (!listArgs.bulkFilterList) {
       NcError.badRequest('Invalid bulkFilterList');
     }
@@ -789,7 +780,6 @@ export class PublicDatasService {
         const result = await this.datasService.dataList(context, {
           query: {
             ...dF,
-            ...listArgs,
           },
           model,
           view,
@@ -849,10 +839,15 @@ export class PublicDatasService {
       NcError.badRequest('Invalid bulkFilterList');
     }
 
-    const data = await baseModel.bulkGroupBy(listArgs, view);
+    const [data, count] = await Promise.all([
+      baseModel.bulkGroupBy(listArgs, view),
+      baseModel.bulkGroupByCount(listArgs, view),
+    ]);
+
     Object.values(listArgs.bulkFilterList).forEach((dF: any) => {
       data[dF.alias] = new PagedResponseImpl(data[dF.alias], {
         ...dF,
+        count: count[dF.alias].count,
       });
     });
 
