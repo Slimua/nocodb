@@ -189,4 +189,34 @@ export class PublicDatasController {
     );
     return paginatedResponse;
   }
+
+  @Get(['/api/v2/public/shared-view/:sharedViewUuid/bulk/dataList'])
+  async bulkDataList(
+    @TenantContext() context: NcContext,
+    @Req() req: NcRequest,
+    @Param('sharedViewUuid') sharedViewUuid: string,
+  ) {
+    const response = await this.publicDatasService.bulkDataList(context, {
+      query: req.query,
+      password: req.headers?.['xc-password'] as string,
+      sharedViewUuid,
+    });
+
+    return response;
+  }
+
+  @Get(['/api/v2/public/shared-view/:sharedViewUuid/bulk/group'])
+  async bulkGroupBy(
+    @TenantContext() context: NcContext,
+    @Req() req: NcRequest,
+    @Param('sharedViewUuid') sharedViewUuid: string,
+  ) {
+    const response = await this.publicDatasService.bulkGroupBy(context, {
+      query: req.query,
+      password: req.headers?.['xc-password'] as string,
+      sharedViewUuid,
+    });
+
+    return response;
+  }
 }
