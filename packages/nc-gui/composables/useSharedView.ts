@@ -238,7 +238,7 @@ export function useSharedView() {
       field: string
       type: string
     }>
-    aggregateFilterList: Array<{
+    bulkFilterList: Array<{
       where: string
       alias: string
     }>
@@ -251,7 +251,55 @@ export function useSharedView() {
       sharedView.value.uuid!,
       {
         ...param,
-        aggregateFilterList: JSON.stringify(param.aggregateFilterList),
+        bulkFilterList: JSON.stringify(param.bulkFilterList),
+        filterArrJson: JSON.stringify(param.filtersArr ?? nestedFilters.value),
+      } as any,
+      {
+        headers: {
+          'xc-password': password.value,
+        },
+      },
+    )
+  }
+
+  const fetchBulkListData = async (param: {
+    bulkFilterList: Array<{
+      where: string
+      alias: string
+    }>
+    where?: string
+  }) => {
+    if (!sharedView.value) return {}
+
+    return await $api.public.dataTableBulkDataList(
+      sharedView.value.uuid!,
+      {
+        ...param,
+        bulkFilterList: JSON.stringify(param.bulkFilterList),
+      } as any,
+      {
+        headers: {
+          'xc-password': password.value,
+        },
+      },
+    )
+  }
+
+  const fetchBulkGroupData = async (param: {
+    bulkFilterList: Array<{
+      where: string
+      alias: string
+    }>
+    filtersArr?: FilterType[]
+    where?: string
+  }) => {
+    if (!sharedView.value) return {}
+
+    return await $api.public.dataTableBulkGroup(
+      sharedView.value.uuid!,
+      {
+        ...param,
+        bulkFilterList: JSON.stringify(param.bulkFilterList),
         filterArrJson: JSON.stringify(param.filtersArr ?? nestedFilters.value),
       } as any,
       {
@@ -348,6 +396,8 @@ export function useSharedView() {
     fetchSharedViewGroupedData,
     fetchAggregatedData,
     fetchBulkAggregatedData,
+    fetchBulkGroupData,
+    fetchBulkListData,
     paginationData,
     sorts,
     exportFile,
